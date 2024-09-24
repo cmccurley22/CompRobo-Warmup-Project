@@ -1,0 +1,64 @@
+import rclpy
+from rclpy.node import Node
+from geometry_msgs.msg import Twist
+from sensor_msgs.msg import LaserScan
+from math import sin, cos, sqrt, radians, atan
+
+
+class WallFollowerNode(Node):
+    def __init__(self):
+        super().__init__("wall_follower")
+
+        self.vel_pub = self.create_publisher(Twist, "cmd_vel", 10)
+        self.scan_sub = self.create_subscription(LaserScan, "scan", \
+            self.get_scan, 10)
+
+        self.create_timer(0.1, self.follow_wall)
+
+        self.scan_angles = (270 - 45, 270 + 45)
+
+        self.wall_dist = 0
+        self.wall_angle = 0
+
+        self.goal_dist = .5
+        self.goal_angle = 0
+
+    def get_scan(self, scan_msg):
+        '''read lidar data'''
+        self.ranges = scan_msg.ranges
+
+    def get_wall_dist(self, ranges, a1, a2):
+        if ranges[a1] and ranges[a2]:
+            x1 = ranges[a1] * cos(radians(270 - a1))
+            y1 = -ranges[a1] * sin(radians(270 - a1))
+            x2 = ranges[a2] * cos(radians(a2 - 270))
+            y2 = ranges[a2] * sin(radians(a2 - 270))
+
+            m = (y2 - y1) / (x2 - x1)
+            b = -m * x1  + y1
+
+            self.wall_dist = abs(b) / sqrt(1 + m * m)
+
+            if m != 0: # need to make sure denominator isn't 0
+                self.wall_angle = atan(1 / m)
+    
+    def follow_wall(self):
+        k_p = 10 # proportional control constant
+
+        self.get_wall_dist(self.ranges, 225, 315)
+
+        err_dist = self.wall_dist - self.goal_dist
+        err_angle = self.wall_angle - self.goal_angle
+        
+
+
+
+def main(args = None):
+    rclpy.init(args = args)
+    node = WallFollowerNode()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == '__main__':
+    main()
+
