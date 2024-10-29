@@ -7,11 +7,12 @@ from rclpy.node import Node
 from geometry_msgs.msg import Twist
 
 
+# bind keys to their corresponding velocities
 key_bindings = {
-    "w": (1.0, 0.0),
-    "a": (0.0, 1.0),
-    "s": (-1.0, 0.0),
-    "d": (0.0, -1.0),
+    "w": (1.0, 0.0), # forward
+    "a": (0.0, 1.0), # spin left
+    "s": (-1.0, 0.0),  #backward
+    "d": (0.0, -1.0), # spin right
 }
 
 
@@ -27,18 +28,22 @@ class TeleOpNode(Node):
         self.settings = termios.tcgetattr(sys.stdin)
     
     def get_key(self):
+        '''get key being pressed from keyboard'''
         tty.setraw(sys.stdin.fileno())
         select.select([sys.stdin], [], [], 0)
         self.key_pressed = sys.stdin.read(1)
         termios.tcsetattr(sys.stdin, termios.TCSADRAIN, self.settings)
 
     def run_loop(self):
+        '''loop checking keypresses and updating robot velocity'''
         while self.key_pressed != '\x03':
             self.get_key()
 
             if self.key_pressed in key_bindings:
+                # w, a, s, or d being pressed - get corresponding velocity
                 vels = key_bindings[self.key_pressed]
 
+                # set neato velocity based on keypress
                 twist_msg = Twist()
                 twist_msg.linear.x = vels[0]
                 twist_msg.angular.z = vels[1]

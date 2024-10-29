@@ -2,8 +2,6 @@
 
 Kate McCurley
 
-## Introduction
-
 ## 1. Robot Teleoperation (Teleop)
 
 The teleoperation node allows the robot to be controlled via the keyboard,
@@ -81,7 +79,9 @@ scan in a full circle before making a decision on what direction to travel in.
 ## 5. Obstacle Avoidance
 
 The obstacle avoidance node instructs the Neato to move forward while reactively
-avoiding any obstacles in its path using the laser scan data.
+avoiding any obstacles in its path using the laser scan data. This repository
+does not contain a completed implementation of obstacle avoidance; however, what
+follows are notes on the intended implementation.
 
 This implementation of object avoidance turns 90&deg; when it encounters an
 obstacle, drives until the obstacle is no longer in the Neato's field of view,
@@ -97,4 +97,23 @@ it away from obstacles found by the laser scan.
 
 ## 6. Finite State Control
 
-## Conclusion
+The finite state controller node goes between two states: drive square and
+e-stop. It uses a second thread to run both the run loop (which uses the same
+base code as the drive square node) and check if the bumpers are being hit at
+the same time. This way if the robot is trying to drive into an object in the
+process of driving in the square, it goes into an emergency stop state. This
+same method could be applied in more complicated cases, like obstacle
+avoidance - if an issue results in the obstacle avoidance failing, the robot
+would still stop as soon as it hit an obstacle.
+
+## Takeaways
+
+One thing I found really helpful during this assignment was looking at similar
+references to write my code. Using examples from class that had similar concepts
+or referencing the past sample projects when I had specific questions helped
+with my understanding a lot.
+
+I also feel like I reused a lot of similar code, so one thing I'd consider is
+having a better structure of functions / classes to make it easier to repurpose
+parts of code I'd already written. I also think in general being aware of code
+organization throughout projects is important.
